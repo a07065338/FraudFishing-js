@@ -1,0 +1,27 @@
+{
+  "name": "fraudfishing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:init": "dotenv -- mysql -u %DB_USER% -p%DB_PASSWORD% %DB_NAME% < database/schema.sql",
+    "db:seed": "dotenv -- mysql -u %DB_USER% -p%DB_PASSWORD% %DB_NAME% < database/seed.sql"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/swagger": "^11.2.0",
+    "dotenv-cli": "^10.0.0",
+    "joi": "^18.0.1",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^7.4.2"
+  }
+}
