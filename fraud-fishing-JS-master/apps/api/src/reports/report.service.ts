@@ -331,109 +331,126 @@ export class ReportService {
         };
     }
 
-    async searchReports(options: {
-        status?: string;
-        userId?: number;
-        categoryId?: number;
-        url?: string;
-        sort?: "popular" | "recent";
-        include?: string[];
-        page?: number;
-        limit?: number;
-    }): Promise<ReportDto[]> {
-        const include = options.include || [];
-        const includeStatus = include.includes("status");
-        const includeCategory = include.includes("category");
-        const includeUser = include.includes("user");
-        const includeTags = include.includes("tags");
-
-        // status mapping
-        let statusIds: number[] | undefined;
-        const s = (options.status || "").trim();
-        if (s) {
-            if (s === "active") statusIds = [1, 2];
-            else if (s === "completed") statusIds = [3, 4];
-            else if (s === "primary") statusIds = undefined; // handled at controller
-            else if (!Number.isNaN(Number(s))) statusIds = [Number(s)];
+    async searchReports(
+    optionsOrStatus:
+      | {
+          status?: string;
+          userId?: number;
+          categoryId?: number;
+          url?: string;
+          sort?: 'popular' | 'recent';
+          include?: string[];
+          page?: number;
+          limit?: number;
         }
+      | string,
+    userId?: number,
+    categoryId?: number,
+    url?: string,
+    sort?: 'popular' | 'recent',
+    include?: string[],
+    page?: number,
+    limit?: number,
+  ): Promise<ReportDto[]> {
+    // 👇 Normalizamos los parámetros a un solo objeto
+    const options =
+      typeof optionsOrStatus === 'string'
+        ? { status: optionsOrStatus, userId, categoryId, url, sort, include, page, limit }
+        : optionsOrStatus;
 
-        const page = options.page && options.page > 0 ? options.page : 1;
-        const limit = options.limit && options.limit > 0 ? Math.min(options.limit, 100) : 20;
-        const offset = (page - 1) * limit;
+    // --- Preparar flags de inclusión ---
+    const includeList = options.include || [];
+    const includeStatus = includeList.includes('status');
+    const includeCategory = includeList.includes('category');
+    const includeUser = includeList.includes('user');
+    const includeTags = includeList.includes('tags');
 
-        const rows = await this.reportRepository.searchReports({
-            userId: options.userId,
-            categoryId: options.categoryId,
-            url: options.url?.trim(),
-            statusIds,
-            sort: options.sort,
-            includeStatus,
-            includeCategory,
-            includeUser,
-            includeTags, // ← NUEVO
-            limit,
-            offset,
-        });
+    // --- Resolver status y paginación ---
+    const statusIds = this.resolveStatusIds(options.status);
+    const { page: currentPage, limit: currentLimit, offset } = this.resolvePagination(
+      options.page,
+      options.limit,
+    );
 
-        const dtos = rows.map(r => this.mapDynamicRowToDto(r, { includeStatus, includeCategory, includeUser }));
+    // --- Ejecutar búsqueda ---
+    const rows = await this.reportRepository.searchReports({
+      userId: options.userId,
+      categoryId: options.categoryId,
+      url: options.url?.trim(),
+      statusIds,
+      sort: options.sort,
+      includeStatus,
+      includeCategory,
+      includeUser,
+      includeTags,
+      limit: currentLimit,
+      offset,
+    });
 
-        // ← Ajuste: filtrar nulos al mapear tags
-        if (includeTags) {
-            for (let i = 0; i < rows.length; i++) {
-                const raw = rows[i] as any;
-                const dto = dtos[i];
-                const rawTags = raw?.tags_json;
+    // --- Mapear a DTO ---
+    const dtos = rows.map((r) =>
+      this.mapDynamicRowToDto(r, { includeStatus, includeCategory, includeUser }),
+    );
 
-                let tagsArray: Array<{ id: number; name: string } | null> = [];
-                if (rawTags) {
-                    if (typeof rawTags === "string") {
-                        try { tagsArray = JSON.parse(rawTags); } catch { tagsArray = []; }
-                    } else if (Array.isArray(rawTags)) {
-                        tagsArray = rawTags;
-                    }
-                }
-                // Si el error persiste, la forma más limpia y estricta es:
-                const validTags = (tagsArray ?? [])
-                    .filter((t): t is { id: any; name: any } => t != null) // Garantiza que t no es null/undefined
-                    .filter((t) => t.id != null && t.name != null); // Verifica las propiedades.
+    // --- Agregar tags si aplica ---
+    return includeTags ? this.attachTagsToDtos(rows, dtos) : dtos;
+  }
 
+  // 🔹 Resolver los IDs de estado
+  private resolveStatusIds(status?: string): number[] | undefined {
+    if (!status) return undefined;
+    const s = status.trim();
+    if (s === 'active') return [1, 2];
+    if (s === 'completed') return [3, 4];
+    if (s === 'primary') return undefined; // handled at controller
+    if (!Number.isNaN(Number(s))) return [Number(s)];
+    return undefined;
+  }
 
-                // La asignación final (se mantiene igual):
-                dto.tags = validTags.map(t => ({ id: Number(t.id), name: String(t.name) }));
-            }
-        }
+  // 🔹 Calcular paginación segura
+  private resolvePagination(page?: number, limit?: number) {
+    const validPage = page && page > 0 ? page : 1;
+    const validLimit = limit && limit > 0 ? Math.min(limit, 100) : 20;
+    const offset = (validPage - 1) * validLimit;
+    return { page: validPage, limit: validLimit, offset };
+  }
 
-        return dtos;
+  // 🔹 Adjuntar tags a los DTOs (si están incluidos)
+  private attachTagsToDtos(rows: any[], dtos: ReportDto[]): ReportDto[] {
+    return dtos.map((dto, i) => {
+      const raw = rows[i];
+      const tags = this.parseTags(raw?.tags_json);
+      return { ...dto, tags };
+    });
+  }
+
+  // 🔹 Parsear tags de JSON o arreglo
+  private parseTags(rawTags: any): { id: number; name: string }[] {
+    if (!rawTags) return [];
+    if (typeof rawTags === 'string') {
+      try {
+        return JSON.parse(rawTags);
+      } catch {
+        return [];
+      }
     }
+    if (Array.isArray(rawTags)) return rawTags;
+    return [];
+  }
 
-    private mapDynamicRowToDto(row: any, opts: { includeStatus: boolean; includeCategory: boolean; includeUser: boolean; }): ReportDto {
-        const base: ReportDto = {
-            id: row.id,
-            userId: row.user_id,
-            categoryId: row.category_id,
-            title: row.title,
-            description: row.description,
-            url: row.url,
-            statusId: row.status_id,
-            imageUrl: row.image_url,
-            voteCount: row.vote_count,
-            commentCount: row.comment_count,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
-        } as ReportDto;
-    
-        if (opts.includeStatus) {
-            base.statusName = row.status_name;
-            base.statusDescription = row.status_description;
-        }
-        // ← Nuevo: mapear nombre de categoría cuando se pidió include=category
-        if (opts.includeCategory) {
-            base.categoryName = row.category_name;
-        }
-        // category/user names can be extended here if you add columns
-        return base;
-    }
+  // 🔹 Ejemplo placeholder: mapea fila a DTO dinámico
+  private mapDynamicRowToDto(row: any, options: any): ReportDto {
+    // Aquí iría tu lógica real de mapeo de columnas a propiedades del DTO
+    return {
+      id: row.id,
+      url: row.url,
+      description: row.description,
+      createdAt: row.created_at,
+      ...(options.includeStatus && { status: row.status_name }),
+      ...(options.includeCategory && { category: row.category_name }),
+      ...(options.includeUser && { user: row.user_name }),
+    } as ReportDto;
+  }
 }
-
 
 

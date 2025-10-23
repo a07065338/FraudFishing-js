@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsInt } from "class-validator";
+import { IsNotEmpty, IsString, IsInt } from "class-validator";
 export class CommentDto {
     @ApiProperty({ example: 1, description: "ID del comentario" })
     @IsInt()

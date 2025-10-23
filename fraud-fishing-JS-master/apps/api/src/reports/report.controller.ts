@@ -5,7 +5,6 @@ import type { AuthenticatedRequest } from "../common/interfaces/authenticated-re
 import { ReportDto, CreateReportDto, UpdateReportDto, UpdateReportStatusDto, TagDto, VoteResponseDto} from "./dto/report.dto";
 import { CommentDto } from "../comments/dto/comment.dto";
 import { ReportService } from "./report.service";
-import { NotificationService } from "../notifications/notification.service";
 
 @ApiTags("Endpoints de Reportes")
 @Controller("reports")

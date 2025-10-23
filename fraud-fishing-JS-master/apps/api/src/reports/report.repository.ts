@@ -365,8 +365,10 @@ export class ReportRepository {
         if (filters.includeTags) {
             // ← NUEVO: agregar los tags por reporte usando JSON_ARRAYAGG
             selects.push("COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', t.id, 'name', t.name)), JSON_ARRAY()) AS tags_json");
-            joins.push("LEFT JOIN report_tag rt ON rt.report_id = r.id");
-            joins.push("LEFT JOIN tag t ON t.id = rt.tag_id");
+            joins.push(
+                "LEFT JOIN report_tag rt ON rt.report_id = r.id",
+                "LEFT JOIN tag t ON t.id = rt.tag_id"
+            );
         }
 
         const where: string[] = [];
@@ -380,9 +382,13 @@ export class ReportRepository {
         }
 
         let orderBy = "ORDER BY r.created_at DESC";
-        if (filters.sort === "popular") orderBy = "ORDER BY r.vote_count DESC, r.created_at DESC";
-        else if (filters.sort === "recent") orderBy = "ORDER BY r.created_at DESC";
-
+        switch (filters.sort) {
+         case "popular":
+            orderBy = "ORDER BY r.vote_count DESC, r.created_at DESC";
+            break;
+         default:
+            orderBy = "ORDER BY r.created_at DESC";
+        }
         const groupBy = filters.includeTags ? "GROUP BY r.id" : ""; // ← NUEVO
 
         const sql = `

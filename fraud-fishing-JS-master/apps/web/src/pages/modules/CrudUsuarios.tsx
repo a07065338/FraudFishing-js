@@ -62,7 +62,7 @@ export default function CrudUsuarios() {
 
   // ===== KPIs (tarjetas) - Actualizadas para usuarios normales =====
   const { total, nuevosSemana, nuevosDia } = useMemo(() => {
-    const now = new Date().getTime();
+    const now = new Date.now();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const oneDayMs = 24 * 60 * 60 * 1000;
     let t = 0,
@@ -119,11 +119,13 @@ export default function CrudUsuarios() {
   useEffect(() => setPage(1), [filtro, sortKey, sortDir, pageSize]);
 
   const toggleSort = (key: keyof UsuarioStats) => {
-    if (sortKey !== key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
       setSortKey(key);
       setSortDir("desc");
     } else {
-      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+      setSortKey(key);
+      setSortDir("desc");
     }
   };
 
@@ -160,7 +162,7 @@ export default function CrudUsuarios() {
   };
 
   const handleEliminar = async (id: number) => {
-    if (!window.confirm("¿Eliminar este usuario?")) return;
+    if (!globalThis.confirm("¿Eliminar este usuario?")) return;
     try {
       await axios.delete(`http://localhost:3000/admin/user/${id}`, {
         headers: { Authorization: "Bearer <TOKEN_ADMIN>" },
@@ -385,11 +387,11 @@ function KpiCard({
   title,
   value,
   tone = "soft", // "solid" | "soft"
-}: {
+}: Readonly <{
   title: string;
   value: number | string;
   tone?: "solid" | "soft";
-}) {
+}>) {
   const base =
     tone === "solid"
       ? "bg-teal-600 text-white hover:bg-teal-700"
@@ -411,12 +413,12 @@ function Th({
   onClick,
   active,
   dir,
-}: {
+}: Readonly <{
   children: React.ReactNode;
   onClick: () => void;
   active?: boolean;
   dir?: "asc" | "desc";
-}) {
+}>) {
   return (
     <th
       className="py-3 px-2 text-left font-bold text-[13px] select-none cursor-pointer"
@@ -436,11 +438,11 @@ function RowUsuario({
   user,
   onView,
   onDelete,
-}: {
+}: Readonly <{
   user: UsuarioStats;
   onView: () => void;
   onDelete: () => void;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -516,11 +518,11 @@ function Pagination({
   page,
   totalPages,
   onChange,
-}: {
+}: Readonly < {
   page: number;
   totalPages: number;
   onChange: (p: number) => void;
-}) {
+}>) {
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
     const push = (v: number | string) => arr.push(v);
@@ -597,7 +599,7 @@ function Pagination({
             {p}
           </button>
         ) : (
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-500 select-none">
+          <span key={`ellipsis-${p}-${page}`} className="px-2 text-gray-500 select-none">
             {p}
           </span>
         )

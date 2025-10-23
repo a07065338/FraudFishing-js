@@ -3,7 +3,7 @@ import { AdminService } from "./admin.service";
 import { ApiBody, ApiResponse, ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"; 
 import { UpdateUserDto, UserDto } from "../users/dto/user.dto";
 import { CreateAdminDto } from "./dto/admin.dto";
-import { UserStatsDto, UserStatsResponseDto } from "./dto/user-stats.dto";
+import { UserStatsResponseDto } from "./dto/user-stats.dto";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { AdminGuard } from "src/common/guards/admin.guard";
 

@@ -1,4 +1,4 @@
-export default function CrudTemplate({ title, addLabel }: { title: string; addLabel: string }) {
+export default function CrudTemplate({ title, addLabel }: Readonly< { title: string; addLabel: string }>) {
   return (
     <div>
       {/* Header */}

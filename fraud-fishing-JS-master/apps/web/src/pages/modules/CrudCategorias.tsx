@@ -97,11 +97,11 @@ export default function CrudCategorias() {
   useEffect(() => setPage(1), [filtro, sortKey, sortDir, pageSize]);
 
   const toggleSort = (key: keyof Categoria) => {
-    if (sortKey !== key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
       setSortKey(key);
       setSortDir("desc");
-    } else {
-      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
     }
   };
 
@@ -122,7 +122,7 @@ export default function CrudCategorias() {
   };
 
   const handleEliminar = async (id: number) => {
-    if (!window.confirm("¿Eliminar esta categoría?")) return;
+    if (!globalThis.confirm("¿Eliminar esta categoría?")) return;
     try {
       await axios.delete(`http://localhost:3000/categories/${id}`);
       setCategorias((curr) => curr.filter((c) => c.id !== id));
@@ -369,12 +369,12 @@ function KpiCard({
   value,
   subValue,
   tone = "soft",
-}: {
+}: Readonly < {
   title: string;
   value: number | string;
   subValue?: number | string;
   tone?: "solid" | "soft";
-}) {
+}>) {
   const base =
     tone === "solid"
       ? "bg-teal-600 text-white hover:bg-teal-700"
@@ -405,12 +405,12 @@ function Th({
   onClick,
   active,
   dir,
-}: {
+}: Readonly <{
   children: React.ReactNode;
   onClick: () => void;
   active?: boolean;
   dir?: "asc" | "desc";
-}) {
+}>) {
   return (
     <th
       className="py-3 px-2 text-left font-bold text-[13px] select-none cursor-pointer"
@@ -430,11 +430,11 @@ function RowCategoria({
   cat,
   onView,
   onDelete,
-}: {
+}: Readonly <{
   cat: Categoria;
   onView: () => void;
   onDelete: () => void;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -498,22 +498,26 @@ function Pagination({
   page,
   totalPages,
   onChange,
-}: {
+}: Readonly < {
   page: number;
   totalPages: number;
   onChange: (p: number) => void;
-}) {
+}>) {
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
     const push = (v: number | string) => arr.push(v);
     
     // Si no hay páginas, retornar array vacío
-    if (totalPages <= 0) return arr;
+    if (totalPages <= 0){
+      const arrtp= arr
+      return arrtp;
+    } 
     
     // Si hay pocas páginas, mostrar todas
     if (totalPages <= 6) {
+      const resulttp= arr
       for (let i = 1; i <= totalPages; i++) push(i);
-      return arr;
+      return resulttp;
     }
     
     // Lógica para muchas páginas
@@ -579,7 +583,7 @@ function Pagination({
             {p}
           </button>
         ) : (
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-500 select-none">
+          <span key={`ellipsis-${p}-${page}`} className="px-2 text-gray-500 select-none">
             {p}
           </span>
         )

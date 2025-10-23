@@ -60,9 +60,9 @@ export default function CrudAdmins() {
         console.log("Usuarios filtrados como admins:", adminUsers); // ← LOG 2
         
         // Log específico para cada usuario
-        adminUsers.forEach((user: { name: any; is_admin: any; is_super_admin: any; }) => {
+        for (const user of adminUsers as Array<{ name: any; is_admin: any; is_super_admin: any }>) {
           console.log(`Usuario: ${user.name}, is_admin: ${user.is_admin}, is_super_admin: ${user.is_super_admin}`); // ← LOG 3
-        });
+        }
         
         setAdmins(adminUsers);
         setPage(1);
@@ -72,7 +72,7 @@ export default function CrudAdmins() {
 
   // ===== KPIs (tarjetas) =====
   const { total, nuevosSemana, superAdmins, nuevosDia } = useMemo(() => {
-    const now = new Date().getTime();
+    const now = Date.now();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const oneDayMs = 24 * 60 * 60 * 1000;
     let t = 0,
@@ -129,11 +129,12 @@ export default function CrudAdmins() {
   useEffect(() => setPage(1), [filtro, sortKey, sortDir, pageSize]);
 
   const toggleSort = (key: keyof AdminStats) => {
-    if (sortKey !== key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
       setSortKey(key);
       setSortDir("desc");
-    } else {
-      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+      
     }
   };
 
@@ -180,7 +181,7 @@ export default function CrudAdmins() {
   };
 
   const handleEliminar = async (id: number) => {
-    if (!window.confirm("¿Eliminar este administrador?")) return;
+    if (!globalThis.confirm("¿Eliminar este administrador?")) return;
     try {
       await axios.delete(`http://localhost:3000/admin/user/${id}`, {
         headers: authHeaders(),
@@ -489,11 +490,11 @@ function KpiCard({
   title,
   value,
   tone = "soft",
-}: {
+}: Readonly<{
   title: string;
   value: number | string;
   tone?: "solid" | "soft";
-}) {
+}>){
   const base =
     tone === "solid"
       ? "bg-teal-600 text-white hover:bg-teal-700"
@@ -515,12 +516,12 @@ function Th({
   onClick,
   active,
   dir,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   onClick: () => void;
   active?: boolean;
   dir?: "asc" | "desc";
-}) {
+}>){
   return (
     <th
       className="py-3 px-2 text-left font-bold text-[13px] select-none cursor-pointer"
@@ -540,11 +541,11 @@ function RowAdmin({
   admin,
   onView,
   onDelete,
-}: {
+}: Readonly<{
   admin: AdminStats;
   onView: () => void;
   onDelete: () => void;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -646,14 +647,14 @@ function Pagination({
   maxVisiblePages = 6,
   showFirstLast = true,
   showPrevNext = true,
-}: {
+}: Readonly<{
   page: number;
   totalPages: number;
   onChange: (p: number) => void;
   maxVisiblePages?: number;
   showFirstLast?: boolean;
   showPrevNext?: boolean;
-}) {
+}>) {
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
     
@@ -755,7 +756,7 @@ function Pagination({
             {p}
           </button>
         ) : (
-          <span key={`ellipsis-${i}`} className="px-2 text-gray-500 select-none">
+          <span key={`ellipsis-${p}-${page}`} className="px-2 text-gray-500 select-none">
             {p}
           </span>
         )

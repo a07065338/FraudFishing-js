@@ -6,7 +6,6 @@ import {
     UseInterceptors,
     ParseFilePipe,
     MaxFileSizeValidator,
-    FileTypeValidator,
     UseGuards,
     Req,
 } from '@nestjs/common';
@@ -20,7 +19,7 @@ import {
     ApiTags,
 } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { Request } from 'express';

@@ -12,7 +12,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./router/ProtectedRoute";
 
 function App() {
-  const [, setUser] = useState<{ correo: string } | null>(null);
+  const [user, setUser] = useState<{ correo: string } | null>(null);
 
   return (
     <AuthProvider>

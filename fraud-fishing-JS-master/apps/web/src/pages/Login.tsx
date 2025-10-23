@@ -7,7 +7,7 @@ interface LoginProps {
   setUser: (user: { correo: string }) => void;
 }
 
-export default function Login({ setUser }: LoginProps) {
+export default function Login({ setUser }: Readonly<LoginProps>) {
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
