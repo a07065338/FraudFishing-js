@@ -772,11 +772,11 @@ function KpiCard({
   title,
   value,
   tone = "soft",
-}: {
+}: Readonly <{
   title: string;
   value: number | string;
   tone?: "solid" | "soft";
-}) {
+}>) {
   const base =
     tone === "solid"
       ? "bg-teal-600 text-white hover:bg-teal-700"
