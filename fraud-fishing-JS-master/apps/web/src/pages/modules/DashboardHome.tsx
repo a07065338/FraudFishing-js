@@ -54,22 +54,24 @@ export default function DashboardHome() {
 
         const conteoUsuarios: Record<string, number> = {};
         const conteoReportes: Record<string, number> = {};
-        meses.forEach((m) => {
+        for (const m of meses) {
           conteoUsuarios[m] = 0;
           conteoReportes[m] = 0;
-        });
+        }
+
 
         // Contar usuarios creados por mes
-        users.forEach((u: any) => {
+        for (const u of users) {
           if (u.created_at) {
             const fecha = new Date(u.created_at);
             const mes = meses[fecha.getMonth()];
             conteoUsuarios[mes]++;
           }
-        });
+        }
+
         
         // Contar reportes creados por mes (detecta automáticamente el campo de fecha)
-        reportsRes.forEach((r: any) => {
+        for (const r of reportsRes) {
           const fechaCampo =
             r.created_at ||
             r.createdAt ||
@@ -80,12 +82,14 @@ export default function DashboardHome() {
 
           if (fechaCampo) {
             const fecha = new Date(fechaCampo);
-            if (!isNaN(fecha.getTime())) {
+            if (!Number.isNaN(fecha.getTime())) {
               const mes = meses[fecha.getMonth()];
               conteoReportes[mes]++;
             }
           }
-        });
+        }
+
+
 
 
         // Generar dataset para gráficos
@@ -144,19 +148,21 @@ export default function DashboardHome() {
             {error}
           </div>
         )}
+        {data && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <KpiCard icon={<FiUsers />} title="Usuarios" value={data.usuarios} />
+          <KpiCard icon={<FiShield />} title="Admins" value={data.admins} />
+          <KpiCard icon={<FiTag />} title="Categorías" value={data.categorias} />
+          <KpiCard icon={<FiClipboard />} title="Reportes" value={data.reportes} />
+          <KpiCard icon={<FiCheckCircle />} title="Validaciones" value={data.validaciones} />
+          </div>
+        )}
 
-        {!data ? (
+        {!data && (
           <div className="text-center text-gray-500 py-10">Cargando...</div>
-        ) : (
-          <>
-            {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <KpiCard icon={<FiUsers />} title="Usuarios" value={data.usuarios} />
-              <KpiCard icon={<FiShield />} title="Admins" value={data.admins} />
-              <KpiCard icon={<FiTag />} title="Categorías" value={data.categorias} />
-              <KpiCard icon={<FiClipboard />} title="Reportes" value={data.reportes} />
-              <KpiCard icon={<FiCheckCircle />} title="Validaciones" value={data.validaciones} />
-            </div>
+        )}
+
+
 
             {/* Gráficos */}
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -176,7 +182,7 @@ export default function DashboardHome() {
                       dataKey="value"
                     >
                       {pieData.map((_entry, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -240,11 +246,11 @@ function KpiCard({
   icon,
   title,
   value,
-}: {
+}: Readonly <{
   icon: React.ReactNode;
   title: string;
   value: number | string;
-}) {
+}>) {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 flex items-center justify-between hover:shadow-md transition-transform hover:scale-105">
       <div>
@@ -261,11 +267,11 @@ function RecentBox({
   title,
   headers,
   data,
-}: {
+}: Readonly< {
   title: string;
   headers: string[];
   data: (string | number)[][];
-}) {
+}>) {
   return (
     <div className="bg-white  rounded-2xl shadow-sm p-6">
       <h2 className="text-lg font-semibold mb-4">{title}</h2>
@@ -273,15 +279,15 @@ function RecentBox({
         <thead className="text-gray-600 border-b">
           <tr>
             {headers.map((h, i) => (
-              <th key={i} className="border-b border-gray-200 text-left py-2">{h}</th>
+              <th key={h} className="border-b border-gray-200 text-left py-2">{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={i} className="border-b border-gray-200 last:border-none hover:bg-gray-50 transition">
+            <tr key={row.join('-')} className="border-b border-gray-200 last:border-none hover:bg-gray-50 transition">
               {row.map((cell, j) => (
-                <td key={j} className="py-2">{cell}</td>
+                <td key={cell} className="py-2">{cell}</td>
               ))}
             </tr>
           ))}

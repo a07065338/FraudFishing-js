@@ -381,12 +381,11 @@ export class ReportRepository {
             params.push(...filters.statusIds);
         }
 
-        let orderBy = "ORDER BY r.created_at DESC";
-        switch (filters.sort) {
-         case "popular":
+        let orderBy: string;
+        if (filters.sort === "popular") {
             orderBy = "ORDER BY r.vote_count DESC, r.created_at DESC";
-            break;
-         default:
+        }
+        else{
             orderBy = "ORDER BY r.created_at DESC";
         }
         const groupBy = filters.includeTags ? "GROUP BY r.id" : ""; // ← NUEVO

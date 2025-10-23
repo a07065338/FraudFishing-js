@@ -78,7 +78,8 @@ export default function CrudValidacionReportes() {
   const fetchByStatus = async (statusId: StatusId) => {
     try {
       const res = await fetch(`${API}/reports?status=${statusId}`, { headers: authHeaders() });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(`Error al obtener reportes con status ${statusId}`);
+
       const data: Report[] = await res.json();
       if (statusId === 1) setPendientes(data ?? []);
       if (statusId === 2) setEnProgreso(data ?? []);
@@ -93,7 +94,8 @@ export default function CrudValidacionReportes() {
       const res = await fetch(`${API}/admin/user/stats`, {
         headers: authHeaders(),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(`Error al obtener usuario`);
+
       const data = await res.json();
       const user = data?.users?.find((u: UsuarioDetalle) => u.id === userId);
       if (user) {
@@ -155,11 +157,11 @@ export default function CrudValidacionReportes() {
   useEffect(() => setPage(1), [activeTab, filtro, sortKey, sortDir, pageSize]);
 
   const toggleSort = (key: keyof Report) => {
-    if (sortKey !== key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
       setSortKey(key);
       setSortDir("desc");
-    } else {
-      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
     }
   };
 
@@ -167,7 +169,7 @@ export default function CrudValidacionReportes() {
   const fetchReportTags = async (id: number): Promise<Tag[]> => {
     try {
       const res = await fetch(`${API}/reports/${id}/tags`);
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(`Error al obtener tags del reporte ${id}`);
       return await res.json();
     } catch {
       return [];
@@ -176,7 +178,7 @@ export default function CrudValidacionReportes() {
   const fetchReportCategory = async (id: number): Promise<string> => {
     try {
       const res = await fetch(`${API}/reports/${id}/category`);
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(`Error al obtener categoría del reporte ${id}`);
       const { categoryName } = await res.json();
       return categoryName;
     } catch {
@@ -204,7 +206,7 @@ export default function CrudValidacionReportes() {
       if (!res.ok) {
         const msg = await res.text().catch(() => "");
         console.error("Update status error:", msg);
-        throw new Error();
+        throw new Error(`Error al actualizar status del reporte ${id}`);
       }
       // Refrescar ambas listas para mantener consistencia
       await Promise.all([fetchByStatus(1), fetchByStatus(2)]);
@@ -442,17 +444,22 @@ export default function CrudValidacionReportes() {
 
                   {/* Nota de moderación */}
                   <div className="mt-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="moderationNote"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Nota de moderación (opcional)
                     </label>
                     <textarea
+                      id="moderationNote"
                       className="w-full border rounded-lg p-2"
                       rows={3}
                       placeholder="Agrega contexto de por qué apruebas o deniegas…"
                       value={moderationNote}
                       onChange={(e) => setModerationNote(e.target.value)}
-                    />
-                  </div>
+                     />
+                 </div>
+
                 </div>
 
                 <button
@@ -535,12 +542,12 @@ function Th({
   onClick,
   active,
   dir,
-}: {
+}: Readonly <{
   children: React.ReactNode;
   onClick: () => void;
   active?: boolean;
   dir?: "asc" | "desc";
-}) {
+}>) {
   return (
     <th
       className="py-3 px-2 text-left font-bold text-[13px] select-none cursor-pointer"
@@ -562,13 +569,13 @@ function RowValidacion({
   onView,
   onMoveToProgress,
   onViewUser,
-}: {
+}: Readonly < {
   rep: Report;
   isTabPendientes: boolean;
   onView: () => void;
   onMoveToProgress: () => void;
   onViewUser: (userId: number) => void;
-}) {
+}>) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -658,11 +665,11 @@ function Pagination({
   page,
   totalPages,
   onChange,
-}: {
+}: Readonly <{
   page: number;
   totalPages: number;
   onChange: (p: number) => void;
-}) {
+}>) {
   const pages = useMemo(() => {
     const arr: (number | string)[] = [];
     const push = (v: number | string) => arr.push(v);

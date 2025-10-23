@@ -367,7 +367,7 @@ export class ReportService {
 
     // --- Resolver status y paginación ---
     const statusIds = this.resolveStatusIds(options.status);
-    const { page: currentPage, limit: currentLimit, offset } = this.resolvePagination(
+    const { limit: currentLimit, offset } = this.resolvePagination(
       options.page,
       options.limit,
     );

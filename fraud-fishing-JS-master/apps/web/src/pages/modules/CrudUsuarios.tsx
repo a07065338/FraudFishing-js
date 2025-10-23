@@ -62,7 +62,7 @@ export default function CrudUsuarios() {
 
   // ===== KPIs (tarjetas) - Actualizadas para usuarios normales =====
   const { total, nuevosSemana, nuevosDia } = useMemo(() => {
-    const now = new Date.now();
+    const now = Date.now();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const oneDayMs = 24 * 60 * 60 * 1000;
     let t = 0,
